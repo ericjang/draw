@@ -2,8 +2,6 @@
 
 TensorFlow implementation of [DRAW: A Recurrent Neural Network For Image Generation](http://arxiv.org/pdf/1502.04623.pdf) on the MNIST generation task.
 
-For a gentle walkthrough through the paper and implementation, see the writeup here: [https://evjang/articles/draw](http://evjang/articles/draw).
-
 | With Attention  | Without Attention |
 | ------------- | ------------- |
 | ![AttnGIF](img/mnist_attn.gif) | ![NoAttnGIF](img/mnist_noattn.gif) |
@@ -18,7 +16,7 @@ You can visualize the results by running the script `python plot_data.py <prefix
 
 For example, 
 
-`python fubar /tmp/draw/draw_data.npy`
+`python myattn /tmp/draw/draw_data.npy`
 
 To run training without attention, do:
 
