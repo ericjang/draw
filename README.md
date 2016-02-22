@@ -4,7 +4,7 @@ TensorFlow implementation of [DRAW: A Recurrent Neural Network For Image Generat
 
 | With Attention  | Without Attention |
 | ------------- | ------------- |
-| <img src="http://i.imgur.com/XfAkXPw.gifv" width="50%"> | <img src="http://i.imgur.com/qQUToOy.gifv" width="50%"> |
+| <img src="http://i.imgur.com/XfAkXPw.gif" width="50%"> | <img src="http://i.imgur.com/qQUToOy.gif" width="50%"> |
 
 Although open-source implementations of this paper already exist (see links below), this implementation focuses on simplicity and ease of understanding. I tried to make the code resemble the raw equations as closely as posible.
 
