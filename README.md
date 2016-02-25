@@ -8,6 +8,8 @@ TensorFlow implementation of [DRAW: A Recurrent Neural Network For Image Generat
 
 Although open-source implementations of this paper already exist (see links below), this implementation focuses on simplicity and ease of understanding. I tried to make the code resemble the raw equations as closely as posible.
 
+For a gentle walkthrough through the paper and implementation, see the writeup here: [https://evjang/articles/draw](http://evjang/articles/draw).
+
 ## Usage
 
 `python draw.py --data_dir=/tmp/draw` downloads the binarized MNIST dataset to /tmp/draw/mnist and trains the DRAW model with attention enabled for both reading and writing. After training, output data is written to `/tmp/draw/draw_data.npy`
