@@ -8,7 +8,7 @@ TensorFlow implementation of [DRAW: A Recurrent Neural Network For Image Generat
 
 Although open-source implementations of this paper already exist (see links below), this implementation focuses on simplicity and ease of understanding. I tried to make the code resemble the raw equations as closely as posible.
 
-For a gentle walkthrough through the paper and implementation, see the writeup here: [https://evjang.com/articles/draw](http://evjang.com/articles/draw).
+For a gentle walkthrough through the paper and implementation, see the writeup here: [http://blog.evjang.com/2016/06/understanding-and-implementing.html](http://blog.evjang.com/2016/06/understanding-and-implementing.html).
 
 ## Usage
 
