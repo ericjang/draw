@@ -10,7 +10,6 @@ Author: Eric Jang
 """
 
 import tensorflow as tf
-from tensorflow.models.rnn.rnn_cell import LSTMCell
 from tensorflow.examples.tutorials import mnist
 import numpy as np
 import os
@@ -43,8 +42,8 @@ DO_SHARE=None # workaround for variable_scope(reuse=True)
 
 x = tf.placeholder(tf.float32,shape=(batch_size,img_size)) # input (batch_size * img_size)
 e=tf.random_normal((batch_size,z_size), mean=0, stddev=1) # Qsampler noise
-lstm_enc = LSTMCell(enc_size, read_size+dec_size) # encoder Op
-lstm_dec = LSTMCell(dec_size, z_size) # decoder Op
+lstm_enc = tf.nn.rnn_cell.LSTMCell(enc_size, state_is_tuple=True) # encoder Op
+lstm_dec = tf.nn.rnn_cell.LSTMCell(dec_size, state_is_tuple=True) # decoder Op
 
 def linear(x,output_dim):
     """
