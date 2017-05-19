@@ -13,8 +13,7 @@ import tensorflow as tf
 from tensorflow.examples.tutorials import mnist
 import numpy as np
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = '2'
-tf.reset_default_graph()
+
 tf.flags.DEFINE_string("data_dir", "", "")
 tf.flags.DEFINE_boolean("read_attn", True, "enable attention for reader")
 tf.flags.DEFINE_boolean("write_attn",True, "enable attention for writer")
@@ -26,15 +25,15 @@ A,B = 28,28 # image width,height
 img_size = B*A # the canvas size
 enc_size = 256 # number of hidden units / output size in LSTM
 dec_size = 256
-read_n = 2 # read glimpse grid width/height
+read_n = 5 # read glimpse grid width/height
 write_n = 5 # write glimpse grid width/height
 read_size = 2*read_n*read_n if FLAGS.read_attn else 2*img_size
 write_size = write_n*write_n if FLAGS.write_attn else img_size
-z_size=100 # QSampler output size
-T=64 # MNIST generation sequence length
+z_size=10 # QSampler output size
+T=10 # MNIST generation sequence length
 batch_size=100 # training minibatch size
-train_iters=200000
-init_learning_rate=1e-3 # learning rate for optimizer
+train_iters=10000
+learning_rate=1e-3 # learning rate for optimizer
 eps=1e-8 # epsilon for numerical stability
 
 ## BUILD MODEL ## 
@@ -57,15 +56,15 @@ def linear(x,output_dim):
 
 def filterbank(gx, gy, sigma2,delta, N):
     grid_i = tf.reshape(tf.cast(tf.range(N), tf.float32), [1, -1])
-    mu_x = gx + (grid_i - N / 2.0 + 0.5) * delta # eq 19
-    mu_y = gy + (grid_i - N / 2.0 + 0.5) * delta # eq 20
+    mu_x = gx + (grid_i - N / 2 - 0.5) * delta # eq 19
+    mu_y = gy + (grid_i - N / 2 - 0.5) * delta # eq 20
     a = tf.reshape(tf.cast(tf.range(A), tf.float32), [1, 1, -1])
     b = tf.reshape(tf.cast(tf.range(B), tf.float32), [1, 1, -1])
     mu_x = tf.reshape(mu_x, [-1, N, 1])
     mu_y = tf.reshape(mu_y, [-1, N, 1])
     sigma2 = tf.reshape(sigma2, [-1, 1, 1])
-    Fx = tf.exp(-tf.square((a - mu_x)) / (2*sigma2)) # 2*sigma2?
-    Fy = tf.exp(-tf.square((b - mu_y)) / (2*sigma2)) # batch x N x B
+    Fx = tf.exp(-tf.square((a - mu_x) / (2*sigma2))) # 2*sigma2?
+    Fy = tf.exp(-tf.square((b - mu_y) / (2*sigma2))) # batch x N x B
     # normalize, sum over A and B dims
     Fx=Fx/tf.maximum(tf.reduce_sum(Fx,2,keep_dims=True),eps)
     Fy=Fy/tf.maximum(tf.reduce_sum(Fy,2,keep_dims=True),eps)
@@ -76,8 +75,8 @@ def attn_window(scope,h_dec,N):
         params=linear(h_dec,5)
     # gx_,gy_,log_sigma2,log_delta,log_gamma=tf.split(1,5,params)
     gx_,gy_,log_sigma2,log_delta,log_gamma=tf.split(params,5,1)
-    gx=(A-1)/2.0*(gx_+1)
-    gy=(B-1)/2.0*(gy_+1)
+    gx=(A+1)/2*(gx_+1)
+    gy=(B+1)/2*(gy_+1)
     sigma2=tf.exp(log_sigma2)
     delta=(max(A,B)-1)/(N-1)*tf.exp(log_delta) # batch x N
     return filterbank(gx,gy,sigma2,delta,N)+(tf.exp(log_gamma),)
@@ -196,14 +195,13 @@ Lz=tf.reduce_mean(KL) # average over minibatches
 cost=Lx+Lz
 
 ## OPTIMIZER ## 
-global_step = tf.Variable(0, trainable=False)
-learning_rate = tf.train.exponential_decay(init_learning_rate, global_step, 10000, 0.1, staircase=True)
+
 optimizer=tf.train.AdamOptimizer(learning_rate, beta1=0.5)
 grads=optimizer.compute_gradients(cost)
 for i,(g,v) in enumerate(grads):
     if g is not None:
         grads[i]=(tf.clip_by_norm(g,5),v) # clip gradients
-train_op=optimizer.apply_gradients(grads, global_step=global_step)
+train_op=optimizer.apply_gradients(grads)
 
 ## RUN TRAINING ## 
 
@@ -213,7 +211,7 @@ if not os.path.exists(data_directory):
 train_data = mnist.input_data.read_data_sets(data_directory, one_hot=True).train # binarized (0-1) mnist data
 
 fetches=[]
-fetches.extend([Lx,Lz,train_op,learning_rate])
+fetches.extend([Lx,Lz,train_op])
 Lxs=[0]*train_iters
 Lzs=[0]*train_iters
 
@@ -221,23 +219,18 @@ sess=tf.InteractiveSession()
 
 saver = tf.train.Saver() # saves variables learned during training
 tf.global_variables_initializer().run()
-#saver.restore(sess, "./models/model-10000") # to restore from model, uncomment this line
-x_binary = np.zeros([batch_size, img_size])
+#saver.restore(sess, "/tmp/draw/drawmodel.ckpt") # to restore from model, uncomment this line
+
 for i in range(train_iters):
 	xtrain,_=train_data.next_batch(batch_size) # xtrain is (batch_size x img_size)
-#	p = np.random.uniform()
-#	x_binary[xtrain > p] = 1.0
 	feed_dict={x:xtrain}
 	results=sess.run(fetches,feed_dict)
-	Lxs[i],Lzs[i],_,lr=results
+	Lxs[i],Lzs[i],_=results
 	if i%100==0:
-		print("iter=%d, lr=%f : Lx: %f Lz: %f" % (i,lr,Lxs[i],Lzs[i]))
-	if (i+1)%1000==0:
-		saver.save(sess, './models/model', global_step=i+1)
+		print("iter=%d : Lx: %f Lz: %f" % (i,Lxs[i],Lzs[i]))
 
 ## TRAINING FINISHED ## 
-saver.restore(sess, "./models/model-200000")
-#saver.restore(sess, "./trial/t32z10/model-30000")
+
 canvases=sess.run(cs,feed_dict) # generate some examples
 canvases=np.array(canvases) # T x batch x img_size
 
@@ -245,7 +238,7 @@ out_file=os.path.join(FLAGS.data_dir,"draw_data.npy")
 np.save(out_file,[canvases,Lxs,Lzs])
 print("Outputs saved in file: %s" % out_file)
 
-#ckpt_file=os.path.join(FLAGS.data_dir,"./models/drawmodel.ckpt")
-#print("Model saved in file: %s" % saver.save(sess,ckpt_file))
+ckpt_file=os.path.join(FLAGS.data_dir,"drawmodel.ckpt")
+print("Model saved in file: %s" % saver.save(sess,ckpt_file))
 
-#sess.close()
+sess.close()
