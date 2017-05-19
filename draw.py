@@ -188,7 +188,7 @@ for t in range(T):
     mu2=tf.square(mus[t])
     sigma2=tf.square(sigmas[t])
     logsigma=logsigmas[t]
-    kl_terms[t]=0.5*tf.reduce_sum(mu2+sigma2-2*logsigma,1)-T*.5 # each kl term is (1xminibatch)
+    kl_terms[t]=0.5*tf.reduce_sum(mu2+sigma2-2*logsigma-1,1) # each kl term is (1xminibatch)
 KL=tf.add_n(kl_terms) # this is 1xminibatch, corresponding to summing kl_terms from 1:T
 Lz=tf.reduce_mean(KL) # average over minibatches
 
