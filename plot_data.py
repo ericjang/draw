@@ -2,7 +2,6 @@
 # example usage: python plot_data.py noattn /tmp/draw/draw_data.npy
 
 import matplotlib
-import sys
 import numpy as np
 
 interactive=False # set to False if you want to write images to file
@@ -37,8 +36,10 @@ def xrecons_grid(X,B,A):
 	return img
 
 if __name__ == '__main__':
-	prefix=sys.argv[1]
-	out_file=sys.argv[2]
+#	prefix=sys.argv[1]
+#	out_file=sys.argv[2]
+	prefix='atten'
+	out_file='draw_data.npy'
 	[C,Lxs,Lzs]=np.load(out_file)
 	T,batch_size,img_size=C.shape
 	X=1.0/(1.0+np.exp(-C)) # x_recons=sigmoid(canvas)
@@ -53,7 +54,7 @@ if __name__ == '__main__':
 			arr[t].set_yticks([])
 		else:
 			plt.matshow(img,cmap=plt.cm.gray)
-			imgname='%s_%d.png' % (prefix,t) # you can merge using imagemagick, i.e. convert -delay 10 -loop 0 *.png mnist.gif
+			imgname='%s_%d.png' % ('img/'+prefix,t) # you can merge using imagemagick, i.e. convert -delay 10 -loop 0 *.png mnist.gif
 			plt.savefig(imgname)
 			print(imgname)
 	f=plt.figure()
@@ -64,4 +65,4 @@ if __name__ == '__main__':
 	if interactive:
 		plt.show()
 	else:
-		plt.savefig('%s_loss.png' % (prefix))
+		plt.savefig('%s_loss.png' % ('img/' + prefix))
