@@ -63,8 +63,8 @@ def filterbank(gx, gy, sigma2,delta, N):
     mu_x = tf.reshape(mu_x, [-1, N, 1])
     mu_y = tf.reshape(mu_y, [-1, N, 1])
     sigma2 = tf.reshape(sigma2, [-1, 1, 1])
-    Fx = tf.exp(-tf.square((a - mu_x) / (2*sigma2))) # 2*sigma2?
-    Fy = tf.exp(-tf.square((b - mu_y) / (2*sigma2))) # batch x N x B
+    Fx = tf.exp(-tf.square(a - mu_x) / (2*sigma2))
+    Fy = tf.exp(-tf.square(b - mu_y) / (2*sigma2)) # batch x N x B
     # normalize, sum over A and B dims
     Fx=Fx/tf.maximum(tf.reduce_sum(Fx,2,keep_dims=True),eps)
     Fy=Fy/tf.maximum(tf.reduce_sum(Fy,2,keep_dims=True),eps)
